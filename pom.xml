@@ -24,4 +24,12 @@
 		<module>user-registration-capacitytest-gatling</module>
 	</modules>
 
+	<distributionManagement>
+		<repository>
+			<id>internal-release</id>
+			<name>Internal Release Repository</name>
+			<url>http://10.1.14.162:8082/artifactory/dev</url>
+		</repository>
+	</distributionManagement>
+	
 </project>
