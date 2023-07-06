@@ -1,4 +1,4 @@
-FROM java
-COPY user-registration-application-0.0.1-SNAPSHOT.war user-registration-application-0.0.1-SNAPSHOT.war
-CMD /usr/bin/java -Dlogging.path=/log/ -jar user-registration-application-0.0.1-SNAPSHOT.war
+FROM tomcat:8-jre8
+COPY user-registration-application-0.0.1-SNAPSHOT.war /usr/local/tomcat/webapps/
+CMD ["catalina.sh", "run"]
 EXPOSE 8080
