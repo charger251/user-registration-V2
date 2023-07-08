@@ -1,5 +1,4 @@
-FROM tomcat:8-jre8
-LABEL author='charger-ss'
-COPY com/ewolff/user-registration-application/0.0.1-SNAPSHOT/user-registration.war /usr/local/tomcat/webapps/user-registration.war
-CMD ["catalina.sh", "run"]
+FROM openjdk:8u151
+COPY com/ewolff/user-registration-application/0.0.1-SNAPSHOT/user-registration.war user-registration.war
+CMD /usr/bin/java -Dlogging.path=/log/ -jar user-registration.war
 EXPOSE 8080
