@@ -1,0 +1,38 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: my-web-deployment
+  labels:
+    app : my-k8s-deployment
+spec:
+  selector:
+    matchLabels:
+      project: dev
+  template:
+    metadata:
+      labels:
+        project: dev   # Service will look for those PODS Labels!!!
+    spec:
+      containers:
+        - name : login-web
+          image: by01-vm14.topsoft.local/dev/user-registration:latest
+          ports:
+            - containerPort: 8080
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-web-deployment-service
+  labels:
+     env  : prod
+     owner: DenisAstahov
+spec:
+  selector:
+    project: dev      # Selecting PODs with those Labels
+  ports:
+    - name      : app-listener
+      protocol  : TCP
+      port      : 80  # Port on Load Balancer
+      targetPort: 8080  # Port on Pod
+  type: LoadBalancer
