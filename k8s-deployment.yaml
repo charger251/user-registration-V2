@@ -18,6 +18,8 @@ spec:
           image: by01-vm14.topsoft.local/dev/user-registration:34
           ports:
             - containerPort: 8080
+      imagePullSecrets:
+        - name: regcred
 
 ---
 apiVersion: v1
