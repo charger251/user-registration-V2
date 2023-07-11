@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name : login-web
-          image: by01-vm14.topsoft.local/dev/user-registration:59
+          image: by01-vm14.topsoft.local/dev/user-registration:60
           ports:
             - containerPort: 8080
       imagePullSecrets:
