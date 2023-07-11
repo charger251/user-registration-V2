@@ -1,0 +1,75 @@
+pipeline {
+  agent any
+  stages {
+  	stage('Checkout Source') {
+      steps {
+        git branch: 'master',
+            credentialsId: 'ssh-github',
+            url: 'git@github.com:charger251/user-registration-V2.git'          
+      }
+    }
+    
+    stage ('Download WAR') {
+        steps {
+            rtDownload (
+                // Obtain an Artifactory server instance, defined in Jenkins --> Manage Jenkins --> Configure System:
+                serverId: 'by01-vm14.topsoft.local',
+                spec: """{
+                        "files": [
+                                {
+                                    "pattern": "dev/com/ewolff/user-registration-application/0.0.1-SNAPSHOT/*.war",
+                                    "target": "./user-registration.war"
+                                   }
+                                ]
+                                 }"""
+            )
+        }
+    }    
+    
+    stage('Docker Build') {
+      steps {
+      	sh 'docker build -t by01-vm14.topsoft.local/dev/user-registration:$BUILD_ID -t by01-vm14.topsoft.local/dev/user-registration:latest .'
+      	//sh 'ls -l com/ewolff/user-registration-application/0.0.1-SNAPSHOT/'
+      	//sh 'pwd'
+      }
+    }  
+    
+    stage('Docker Push') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: '51f03317-de38-4bef-8c08-f4956bc2b1f5', passwordVariable: 'dockerHubPassword', usernameVariable: 'dockerHubUser')]) {
+          sh "docker login by01-vm14.topsoft.local -u ${env.dockerHubUser} -p ${env.dockerHubPassword}"
+          sh 'docker push by01-vm14.topsoft.local/dev/user-registration:$BUILD_ID'
+        }
+      }
+    }
+  
+    stage('Docker clear cache') {
+      steps {
+        sh "docker image prune -a -f"
+        }
+    }
+      
+    stage('Update k8s manifest') {
+      steps {
+        sh "perl -pi -w -e 's%by01-vm14.topsoft.local/dev/user-registration:(\\d*)%by01-vm14.topsoft.local/dev/user-registration:$BUILD_ID%' k8s-deployment.yaml"
+        sh "cat k8s-deployment.yaml |grep by01-vm14.topsoft.local"
+        sh "git config --global user.email 'charger@charger.com'"
+        sh "git config --global user.name 'charger251'"
+        sshagent(['ssh-github']) {
+            sh("git remote set-url origin 'git@github.com:charger251/user-registration-V2.git'")
+            sh("git add 'k8s-deployment.yaml'")
+            sh("git commit -m 'Update in jenkins job: $JOB_NAME, id: $BUILD_ID'")
+            sh "git push --set-upstream origin master"
+        }
+      }
+    }      
+
+    stage('Run deploy job') {
+      steps {
+        build job: "Deploy to k8s", wait: true
+        }
+    }
+     
+  }  
+}     
+
